@@ -1,0 +1,233 @@
+---------------------------------------------------------------------------------------------------------------
+Bayesian Affect Control Theory
+Author: Jesse Hoey  jhoey@cs.uwaterloo.ca   http://www.cs.uwaterloo.ca/~jhoey
+Version 0.5 - January 2016
+Use for research purposes only.
+Please do not re-distribute without written permission from the author
+Any commerical uses strictly forbidden.
+Code is provided without any guarantees.
+Research sponsored by the Natural Sciences and Engineering Council of Canada (NSERC), the American Alzheimer's
+Association, and the AGEWELL Networks of Centers of Excellence (NCE)
+see http://www.cs.uwaterloo.ca/~jhoey/research/bayesact for more information, papers, and instructional videos
+---------------------------------------------------------------------------------------------------------------
+
+
+
+
+--------------------------
+File Listing:
+
+bayesact/README				(this file)
+
+* Core Bayesact Code:
+bayesact/bayesact.py			(main code and Agent class)
+bayesact/bayesactemot.py		(subclass of Agent class that handles emotions)
+bayesact/bayesactinteractive.py 	(interactive application)
+bayesact/bayesactsim.py 	       	(simulation application)
+
+* Subclasses and examples:
+bayesact/discretetutor.py   		(subclass of Agent)
+bayesact/tutorgui2.py	       		(simple tutor example application)
+bayesact/pwid.py			(simulator class - subclass of Agent - modeling person with dementia)
+bayesact/assistant.py			(assistant - COACH - subclass of Agent)
+bayesact/bayesactassistant.py		(test file for pwid-assistant simulations)
+bayesact/pdagent.py			(prisoner's dilemma agent as used in UAI 2015 paper)
+
+* Bayesact-of-Self code:
+bayesact/bayesocialaaai.py		(Bayesact-of-self model from AAAI 2015 paper)
+bayesact/data/*				(datafiles for running Bayesact-of-self demo in bayesocialaaai.py)
+
+* GUI code
+bayesact/bayesactgui.py 	       	(simulator GUI)
+gui/*					(files for GUI in bayesactgui.py)
+
+* POMCP code:
+bayesact/pomcp.py			(basic POMCP classes)
+bayesact/corobots<X>.py			(cooperative robot examples - toy version of Bayesact using Robots)
+
+* Additional utility code:
+bayesact/epafinder.py			(small utility to query a dictionary for and EPA value or label)
+
+* ACT files included with this distribution (see terms of use at http://www.indiana.edu/~socpsy/ACT/legal.htm)
+bayesact/fidentities.dat		(identity dictionary from Indiana2002-04 database from interact software)
+bayesact/fbehaviours.dat		(behaviour dictionary from Indiana2002-04 database from interact software)
+bayesact/fmodifiers.dat			(modifier/emotions dictionary from Indiana2002-04 database from interact software)
+bayesact/fsettings.dat			(settings dictionary from Indiana2002-04 database from interact software)
+bayesact/tdynamics-male.dat		(equations for dynamics - male - U.S.A. 1978 database)
+bayesact/tdynamics-female.dat		(equations for dynamics - female - U.S.A. 1978 database)
+bayesact/temotions-male.dat		(equations for emotions - male - USA1978 database from interact software)
+bayesact/temotions-female.dat		(equations for emotions - female - USA1978 database from interact software)
+
+* BayesACT files (from ACII 2013 paper tutoring system example)
+bayesact/action-sayings.dat		(things for tutor/student to say)
+bayesact/fbehaviours-student.dat	(EPA values for student sayings)
+bayesact/fbehaviours-tutor.dat		(EPA values for tutor sayings)
+
+
+--------------------------
+INSTALL:
+- download and install python v2.7 and numpy 
+- you also need packages re and itertools, but these come with python2.7 usually
+- unzip bayesact.zip and enter the bayesact folder created thusly
+- You will also need an affective identity dictionary, an affective behaviour dictionary, and dynamics equations for males and for females.  A default set is included with this distribution (see above).  You can get other ones by downloading the interact software, running the main applet, selecting a database (e.g Indiana2002-04), and then selecting "Import/Export", and click "Show Current Entries", and then cut and paste these into two text files: one for identities "fidentities.dat" and one for behaviours "fbehaviours.dat".  You can get the identities by selecting "view equations" from the main menu in Interact and cutting and pasting into the files tydnamics-male.dat and tdynamics-female.dat.
+
+
+USAGE:
+--------------------------
+INTERACTIVE:
+- the most basic simulation (interactive) is done using bayesactinteractive.py 
+- edit the file and change any parameters you want (see instructions therein)
+- out of the box, it should behave like a tutor who believes you are a student
+
+python bayesactinteractive.py
+
+- if you behave like a student (e.g. find out what to do by running 'interact' on the side), it should replicate
+closely what 'interact' does.  However, note that Bayesact will choose actions as vectors in EPA space (it makes
+no use of the labels).
+- you can then change so that the agent doesn't know your (affective) identity,
+agent_knowledge=0
+- and you can change it so the agent starts off as something different than a tutor
+agent_id="businesswoman"
+agent_gender="female"
+- if you select agent_id to be something not in the identities file (fidentities.dat), including "", then
+agent will start at a random identity (but will tell you what it is)
+- -o flag gives you a simple graphical output showing the samples in 2D
+- -m <some number like 0.1> flag adds emotions
+
+
+To get this to replicate what interact does, set the 'mimic_interact' flag to True
+This does a few things:
+- decrease bvagent and bvclient to 0.00001  (this means the identities don't change at all, as in interact)
+- decrease bvagent_init and bvclient_init to 0.000001 (identities are very firm to begin with)
+- increase number of samples to 10000  (so we get precise estimates)
+- decrease observation noise (obs_noise) to 0.05 (so observations are very informative/exact)
+- set roughening noise to 0
+
+
+--------------------------
+SIMULATIONS:
+- you can run bayesactsim.py and give it arguments
+- python bayesactsim.py -h  to see a full list of options
+- e.g.:
+   python bayesactsim.py -n <number of samples (default 1000)> -c <client knowledge (0,1,2) (default 2)> -a <agent knowledge (0,1,2) (Default 0)> -u (if specified - do uniform draws) -d <max horizon - default 50>
+
+To make plots of the samples during a simulation, do the following
+- edit bayesactsim.py and change verbose=True
+- run bayesactsim.py as above using whatever parameters you want, and redirect the output to output/bactsim<WHATEVER>.txt
+- run extract-samples-data WHATEVER <NUMSAMPLES> <OUTDIR>
+- most of the output goes in the directory from which you run this though - needs to be fixed up and streamlined
+- this calls plotsamples.m which uses octave (or could be changed to matlab)
+
+
+--------------------------
+TUTOR GUI:
+- Simple math tutor
+python tutorgui2.py
+
+--------------------------
+
+
+--------------------------
+PLOTTING GUI:
+- Call bayesactgui.py to use
+- Requires wxPython3.0, matplotlib, and wxmpl2.0 installed
+- run bayesactsim or bayesactinteractive with -o option to display a 3D plot
+- use alt+q or alt+w to adjust x-axis
+- use alt+a or alt+s to adjust y-axis
+- use alt+d to reset axes
+- use alt+= or alt+- to zoom in or out
+- use right click to pan
+- left click on a point to see what the closest point is, it will give the e, p, and a values while looking for the nearest identity, it will not estimate an action
+- to see what an action is, check the console or look at bayesact interactive, it will show you what the next action will be
+- modify m_MaxPlotSamples in cConstants.py to adjust number of samples for each agent to plot respectively
+- you may also adjust controls in cConstants.py
+
+
+--------------------------
+Bayesact of Self (AAAI paper):
+python bayesocialaaai.py
+
+doPlotting is set by default, at which point running bayesocialaaai.py will opne a GUI that you can use to visualise the simulations.x
+
+To edit for your own examples:
+line 69:  agent_fsb gives the fundamental self sentiment for the agent you are simulating. This is a list where each element is a 3-tuple with elements [proportion of this identity, identity label OR EPA vector, std. dev of distribution initially for this identity]
+
+lines 72-86: specify the different alters this agent knows about, give them names, genders and identities, as well as their identities for the agent (what they feel about the agent you are simulating).  everything here must be a label from the dictionary
+
+line 94:  say whether you want a stranger to be an option - see the file comments for details
+
+
+
+
+--------------------------
+
+CREATING SUBCLASSES:
+you can subclass Agent and create your own types
+The only thing you need to implement is a way to
+sample from the "X" variable and the reward function
+You must include the "turn" as the first element of "X"
+
+The following methods may be overloaded in a subclass of Agent
+
+*****
+First, consruct and initialise
+-----
+__init__  : set up and initialise
+initialise_x : draw initial values of x
+
+
+*****
+Then , you need to handle sampling from X, generating X observations, and evaluating X states given X observations
+-----
+sampleXvar(self,f,tau,state,aab,paab=None)
+evalSampleXvar(self,sample,xobs)
+sampleXObservation(self,s)
+
+*****
+Then, you need to say how to get a propositional action if using a default sampling method
+This is also used to get the first action sampled when using POMCP
+-----
+get_default_action(self,state) :
+get_prop_action(self,state,rollout=False,samplenum=0)    : get the propositional action when building the POMCP tree. depends on whether we are doing a rollout (in which case it is a random selection) or not (in which case it follows some schedule according to samplenum)
+
+*****
+A program wishing to use a POMCP planner will create a POMCP object and then call POMCP_search with a belief state
+  as a set of samples, and itself as the blackBox simulator. The blackBox object then needs to implement the following
+
+The main function to sample from the action space - returns a tuple of (affective,propositonal) actions. Usually does not need to be overloaded, as it just selects from a distribution over actions with mean = ACT default and a variance given by isiga_pomcp.  The propositional actions is selected using get_prop_action. This consults the oracle from state and return an action, can be different on rollouts and possibly using the sample number
+-----
+a=oracle(self,state,rollout=False,samplenum=None):
+
+******
+propagate a state forwards on action a returning the new state newsample, a new observation (newobs) and a new reward value (newreward)
+------
+(newsample, newobs, newreward) = blackBox.propagateSample(state,a):
+
+*****
+The reward fuction and discount factor
+-----
+reward(self,state,action=None)
+discount_factor:  a real number in (0,1.0) giving the discount
+
+
+The rest implement methods to compare observations and actions basically
+-----
+observationMatch(self,obs1,obs2,resolv)
+(oindex,bestdist)=blackBox.bestObservationMatch(newobs,observSet,observSetData):  finds the best observation match to newobs in observSet.  observSetData is the full set of data for the node, and could also be used to find a best match, so is included as input. returns the index of the best match in observSet and the (smallest) distance of that match
+mean_observ = blackBox.getMeanObs(observSetData): computes the mean of a set of observation - this could possibly be made generic
+
+d = actionDist(a1,a2): returns the distance between two actions (negative if infinite)
+d = observationDist(o1,o2): returns the distance between two observations (negative if infinite)
+
+
+look at the examples in
+discretetutor.py  - A simple discrete tutoring agent that assumes the student's abilities (modeled as a three-valued discrete value) will increase faster with decreasing deflection.  Reward is higher the closer the student gets to some goal value of ability. Exercises come in three levels of difficulty.
+assistant.py - A handwashing assistant for a person with Alzheimer's disease
+
+
+
+TO DO:
+---------------
+- Fix up the null actions - somehow ensure that these have no effect on the client's turn -
+- Experiment with the stochastic turn-taking (this will also impact the first to-do above)
+- same for null observations - maybe this should be changed so there is a null value in there somewhere?
